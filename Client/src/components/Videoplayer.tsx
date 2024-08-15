@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '../utils/axiosInstance';
 import { useParams } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import Loader from './Loader';
 import VideoCard from './Videocard';
 import { IVideo } from '../interfaces/Video';
 import ReactPlayer from 'react-player';
@@ -9,88 +10,67 @@ import { Typography, Avatar, Button } from '@mui/material';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import CommentIcon from '@mui/icons-material/Comment';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { socket } from '../utils/socket';
-
+import useGetRecommendedations from '../hooks/useGetrecommendedvideos';
+import useGetVideoById from '../hooks/useGetvideobyId';
+import { useSelector } from 'react-redux';
+import {useNavigate} from 'react-router-dom';
 const VideoPlayer: React.FC = () => {
+    const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
-    const [video, setVideo] = useState<IVideo | null>(null);
-    const [recommendedVideos, setRecommendedVideos] = useState<IVideo[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    console.log(video, 'video');
+    const { data: video, isLoading, isError, error } = useGetVideoById(id || '');
+    const { data: recommendedVideos, isLoading: recommendedVideosLoading, isError: recommendedVideosError } = useGetRecommendedations();
+    const { user } = useSelector((state: any) => state.user.user);
+    const [liked, setLiked] = useState(false);
+    const [likesCount, setLikesCount] = useState(video?.likesCount || 0);
 
     useEffect(() => {
-        const fetchVideoDetails = async () => {
-            try {
-                const response = await axiosInstance.get(`/videos/${id}`);
-                setVideo(response.data.data);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching video details:', error);
-                setLoading(false);
-            }
-        };
+        if (video && Array.isArray(video.likes)) {
+            setLiked(video.likes.some((like: any) => like.likedBy === user?._id));
+        }
+    }, [video, user]);
 
-        const fetchRecommendedVideos = async () => {
-            try {
-                const response = await axiosInstance.get('/videos/recommended/videos/recommended');
-                setRecommendedVideos(response.data.data);
-            } catch (error) {
-                console.error('Error fetching recommended videos:', error);
-            }
-        };
+    useEffect(() => {
+        setLikesCount(video?.likesCount || 0);
+    }, [video?.likesCount]);
 
-        fetchVideoDetails();
-        fetchRecommendedVideos();
-    }, [id]);
-
-    if (loading) {
+    if (isLoading || recommendedVideosLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen dark:bg-gray-950">
-                <Typography variant="h6" color="textSecondary">
-                    Loading video...
-                </Typography>
+            <div className="flex items-center justify-center h-full">
+                <Loader />
+            </div>
+        );
+    }
+
+    if (isError || recommendedVideosError) {
+        return (
+            <div className="flex items-center justify-center h-full text-red-500">
+                <p>Error loading video: {error?.message || 'Something went wrong'}</p>
             </div>
         );
     }
 
     if (!video) {
         return (
-            <div className="flex items-center justify-center min-h-screen dark:bg-gray-950">
-                <Typography variant="h6" color="textSecondary">
-                    Video not found.
-                </Typography>
+            <div className="flex items-center justify-center h-full text-gray-500">
+                <p>Video not found</p>
             </div>
         );
     }
 
-const handleLike = async () => {
-    try {
-          await axiosInstance.post('/likes/like', { videoid: video._id });
-    } catch (error) {
-        console.error('Error liking video:', error);
-    }
-}
-
-useEffect(() => {
-    if (video) {
-        socket.on('like', (videoid) => {
-            if (videoid === video._id) {
-                setVideo(prevVideo => prevVideo ? { ...prevVideo, likesCount: prevVideo?.likesCount || 0 + 1 } : null);
-            }
-        });
-
-        socket.on('unlike', (videoid) => {
-            if (videoid === video._id) {
-                setVideo(prevVideo => prevVideo ? { ...prevVideo, likesCount: prevVideo?.likesCount || 0 - 1 } : null);
-            }
-        });
-    }
-
-    return () => {
-        socket.off('like');
-        socket.off('unlike');
+    const handleLike = async () => {
+        try {
+            setLiked(!liked);
+            setLikesCount((prevCount: number) => liked ? prevCount - 1 : prevCount + 1); // Update likes count based on the new like status
+            await axiosInstance.post('/likes/like', { videoid: video._id });
+        } catch (error) {
+            console.error('Error liking video:', error);
+        }
     };
-}, [video]);
+
+    function onPlay(videoId: string) {
+        navigate(`/videos/${videoId}`);
+    }
+    
 
     return (
         <div className="flex dark:bg-gray-950">
@@ -121,12 +101,12 @@ useEffect(() => {
                         <div className="flex items-center gap-4 mt-4">
                             <Button
                                 variant="contained"
-                                color="primary"
+                                color={liked ? 'secondary' : 'primary'}
                                 startIcon={<ThumbUpIcon />}
                                 onClick={handleLike}
-                                className="bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-800"
+                                className={`bg-${liked ? 'blue-700' : 'gray-500'} text-white hover:bg-${liked ? 'blue-800' : 'gray-600'} dark:bg-${liked ? 'blue-800' : 'gray-700'} dark:hover:bg-${liked ? 'blue-900' : 'gray-700'}`}
                             >
-                            {video.likesCount}
+                                {likesCount}
                             </Button>
                             <Button
                                 variant="contained"
@@ -153,8 +133,8 @@ useEffect(() => {
                             Recommended Videos
                         </Typography>
                         <div className="space-y-4">
-                            {recommendedVideos.map((recVideo) => (
-                                <VideoCard key={recVideo._id} video={recVideo} />
+                            {recommendedVideos.map((recVideo: IVideo) => (
+                                <VideoCard key={recVideo._id} video={recVideo} onPlay={()=>onPlay(recVideo._id)} />
                             ))}
                         </div>
                     </div>

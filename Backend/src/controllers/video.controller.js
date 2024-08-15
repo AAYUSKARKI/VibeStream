@@ -98,6 +98,24 @@ const getVideoById = asyncHandler(async (req, res) => {
             }
         },
         {
+            //lookup to count subscribers related to the channel
+            $lookup: {
+                from: 'subscriptions',
+                localField: 'owner',
+                foreignField: 'channel',
+                as: 'subscribers'
+            }
+        },
+        {
+            // Lookup to fetch user details of the subscribers
+            $lookup: {
+                from: 'users',
+                localField: 'subscribers', // Assuming 'subscriber' field in subscriptions points to the user ID
+                foreignField: '_id',
+                as: 'subscriberDetails'
+            }
+        },
+        {
             // Add fields to include likes count
             $addFields: {
                 likesCount: { $size: '$likes' },
@@ -117,7 +135,9 @@ const getVideoById = asyncHandler(async (req, res) => {
                 likesCount: 1,
                 likes: {
                     likedBy: 1,
-                }
+                },
+                subscribersCount: { $size: '$subscribers' },
+                subscriberDetails: 1,
             }
         }
     ]);

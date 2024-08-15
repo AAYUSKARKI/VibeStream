@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import { Subscription } from "../models/subscription.model.js";
-import Apiresponse from "../utils/apiresponse.js";
-import Apierror from "../utils/apierror.js";
-import asynchandler from "../utils/asynchandler.js"
+import {Apiresponse} from "../utils/apiresponse.js";
+import {Apierror} from "../utils/apierror.js";
+import {asynchandler} from "../utils/asynchandler.js"
 import {client} from '../index.js'
 
 const createSubscription = asynchandler(async (req, res) => {
@@ -36,23 +36,25 @@ const createSubscription = asynchandler(async (req, res) => {
 });
 
 const getSubscribedchannel = asynchandler(async (req, res) => {
+    console.log('aayus')
     const subscriber = req.user._id.toString();
 
     // Check if the subscribed channels are in the cache
-    client.get(subscriber, async (err, cachedData) => {
-        if (err) {
-            throw new Apierror(500, "Error accessing cache");
-        }
+    const cachedvideos = await client.get(`${subscriber}-subscription`).catch(err => {
+        console.error('Redis Get Error:', err);
+        return null;
+    });
 
-        if (cachedData) {
-            // Return the cached data
-            return res.status(200).json(new Apiresponse(200, JSON.parse(cachedData), "Subscribed channels fetched successfully from cache"));
-        }
+    if (cachedvideos) {
+        return res.status(200).json(new Apiresponse(200, JSON.parse(cachedvideos), "Videos fetched successfully"));
+    }
+        console.log(cachedvideos)
 
         // If data is not in the cache, fetch from the database
         try {
+            console.log('inside try')
             const subscribedChannels = await Subscription.aggregate([
-                { $match: { subscriber: mongoose.Types.ObjectId(subscriber) } },
+                { $match: { subscriber: new mongoose.Types.ObjectId(req.user._id) } },
                 {
                     $lookup: {
                         from: "users",
@@ -72,12 +74,12 @@ const getSubscribedchannel = asynchandler(async (req, res) => {
                 }
             ]);
 
-            if (!subscribedChannels.length) {
-                throw new Apierror(404, "No subscribed channels found");
+            if (subscribedChannels.length === 0) {
+                return res.status(200).json(new Apiresponse(200, [], "No subscribed channels found"));
             }
-
+           console.log('karki')
             // Cache the result for 1 hour
-            client.set(subscriber,JSON.stringify(subscribedChannels));
+            client.set(`${subscriber}-subscription`,JSON.stringify(subscribedChannels),'EX',3600);
 
             return res.status(200).json(new Apiresponse(200, subscribedChannels, "Subscribed channels fetched successfully"));
 
@@ -85,5 +87,5 @@ const getSubscribedchannel = asynchandler(async (req, res) => {
             throw new Apierror(500, `Error fetching subscribed channels: ${error.message}`);
         }
     });
-});
+
 export {createSubscription,getSubscribedchannel}

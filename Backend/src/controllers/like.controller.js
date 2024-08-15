@@ -46,15 +46,13 @@ const createlikevideo = asynchandler(async (req, res) => {
 
 
 const getlikedvideos = asynchandler(async (req, res) => {
-    console.log('aayus')
     const likedBy = req.user._id;
 
-    // Check if the liked videos are already in the cache
+    //Check if the liked videos are already in the cache
     const cachedData = await client.get(`${likedBy.toString()}-like`).catch(err=>{
         console.error('Redis Get Error:', err);
         return null;
     })
- console.log(cachedData)
     if(cachedData){
         return res.status(200).json(new Apiresponse(200, JSON.parse(cachedData), "like Videos fetched successfully"));
     }
@@ -82,15 +80,18 @@ const getlikedvideos = asynchandler(async (req, res) => {
             { $unwind: '$userDetails' },
             {
                 $project: {
-                    username: '$userDetails.username',
-                    avatar: '$userDetails.avatar',
+                    owner:{
+                        username: '$userDetails.username',
+                        avatar: '$userDetails.avatar',
+                    },
                     videofile: '$likedVideos.videofile',
                     title: '$likedVideos.title',
                     description: '$likedVideos.description',
                     duration: '$likedVideos.duration',
                     thumbnail: '$likedVideos.thumbnail',
                     views: '$likedVideos.views',
-                    ispublished: '$likedVideos.ispublished'
+                    ispublished: '$likedVideos.ispublished',
+                    createdAt: '$likedVideos.createdAt'
                 }
             }
         ]);
