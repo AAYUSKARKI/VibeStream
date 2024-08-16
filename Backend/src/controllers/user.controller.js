@@ -405,19 +405,16 @@ const getwatchhistory = asynchandler(async (req, res) => {
                             pipeline: [
                                 {
                                     $project: {
-                                        fullname: 1,
                                         username: 1,
                                         avatar: 1
                                     }
                                 }
-
-
                             ]
                         }
                     }, {
                         $addFields: {
                             owner: {
-                                $first: "$owner"
+                                $first: "$Owner"
                             }
                         }
                     }

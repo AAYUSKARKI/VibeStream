@@ -2,7 +2,7 @@ import { useState} from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { TextField, Button, Typography, Card, CardContent, CircularProgress, Alert } from '@mui/material';
 import { useDropzone, Accept } from 'react-dropzone';
-import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 
 const VideoHubRegister = () => {
     const { control, handleSubmit, setValue, formState: { errors } } = useForm();
@@ -69,7 +69,7 @@ const VideoHubRegister = () => {
             if (data.coverImage) formData.append('coverImage', data.coverImage);
 
             // Submit form data
-            await axios.post('http://localhost:7000/api/v1/users/register', formData, {
+            await axiosInstance.post('/users/register', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
                 onUploadProgress: (progressEvent) => {
                     if (progressEvent.total) {

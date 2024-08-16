@@ -14,6 +14,7 @@ import useGetRecommendedations from '../hooks/useGetrecommendedvideos';
 import useGetVideoById from '../hooks/useGetvideobyId';
 import { useSelector } from 'react-redux';
 import {useNavigate} from 'react-router-dom';
+import addToWatchHistory from '../hooks/useAddtowatchhistory';
 const VideoPlayer: React.FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
@@ -22,15 +23,29 @@ const VideoPlayer: React.FC = () => {
     const { user } = useSelector((state: any) => state.user.user);
     const [liked, setLiked] = useState(false);
     const [likesCount, setLikesCount] = useState(video?.likesCount || 0);
+    const [subscribed, setSubscribed] = useState(false);
+    const [owner, setOwner] = useState(false);
+    const [subscriptionCount, setSubscriptionCount] = useState(0);
 
     useEffect(() => {
         if (video && Array.isArray(video.likes)) {
             setLiked(video.likes.some((like: any) => like.likedBy === user?._id));
         }
+        if(video){
+        addToWatchHistory({ videoId: video._id, userId: user?._id });
+        }
     }, [video, user]);
 
     useEffect(() => {
+        if(video && Array.isArray(video.subscriberDetails)) {
+            setSubscribed(video.subscriberDetails.some((sub: any) => sub._id === user?._id));
+        }
+    }, [video, user]);
+
+    useEffect(() => {
+        setOwner(video?.owner?._id === user?._id);
         setLikesCount(video?.likesCount || 0);
+        setSubscriptionCount(video?.subscribersCount || 0);
     }, [video?.likesCount]);
 
     if (isLoading || recommendedVideosLoading) {
@@ -67,10 +82,19 @@ const VideoPlayer: React.FC = () => {
         }
     };
 
+    const handleSubscribe = async () => {
+        try {
+            setSubscribed(!subscribed);
+            setSubscriptionCount((prevCount: number) => subscribed ? prevCount - 1 : prevCount + 1); // Update subscription count based on the new subscription status
+            await axiosInstance.post('/subscriptions/subscription', { channelid: video.owner._id });
+        } catch (error) {
+            console.error('Error subscribing to channel:', error);
+        }
+    };
+
     function onPlay(videoId: string) {
         navigate(`/videos/${videoId}`);
     }
-    
 
     return (
         <div className="flex dark:bg-gray-950">
@@ -118,11 +142,13 @@ const VideoPlayer: React.FC = () => {
                             </Button>
                             <Button
                                 variant="contained"
-                                color="inherit"
+                                color={subscribed ? 'secondary' : 'primary'}
                                 startIcon={<NotificationsIcon />}
-                                className="bg-red-500 text-white hover:bg-red-600 dark:bg-red-700 dark:hover:bg-red-800"
+                                disabled={owner}
+                                onClick={handleSubscribe}
+                                className={`bg-${subscribed ? 'gray-700' : 'red-500'} dark:text-white  text-black hover:bg-${subscribed ? 'gray-800' : 'red-600'} dark:bg-${subscribed ? 'gray-400' : 'red-500'} dark:hover:bg-${subscribed ? 'blue-900' : 'gray-700'}`}
                             >
-                                Subscribe
+                                {subscriptionCount}
                             </Button>
                         </div>
                     </div>

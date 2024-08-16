@@ -4,7 +4,7 @@ import VideoUploadForm from './components/VideoUploadForm';
 import LoginForm from './components/Login';
 import VideoList from './components/Videolist';
 import VideoHubRegister from './components/Register';
-import { Navbar } from './utils';
+import Navbar from './components/Navbar';
 import Mychannel from './components/Mychannel';
 import ThemeSwitcher from './components/Themeswitcher';
 import { Suspense, lazy, useEffect, useState } from 'react';
@@ -15,7 +15,7 @@ import Likedvideo from './components/Likedvideo'
 const Videoplayer = lazy(() => import('./components/Videoplayer'));
 const Subscribedchannel = lazy(() => import('./components/Subscribedchannel'));
 const Watchhistory = lazy(() => import('./components/Watchhistory'));
-
+const Searchresults = lazy(() => import('./components/Searchresults'));
 function App() {
 
     const [loading, setLoading] = useState(true);
@@ -47,6 +47,7 @@ function App() {
                     <Route path="/liked-videos" element={<Likedvideo />} />
                     <Route path="/subscriptions" element={<Subscribedchannel />} />
                     <Route path="/history" element={<Watchhistory />} />
+                    <Route path="/search" element={<Searchresults />} />
                 </Routes>
                 </Suspense>
             </Router>

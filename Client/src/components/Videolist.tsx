@@ -7,6 +7,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ReactPlayer from 'react-player';
 import Sidebar from './Sidebar';
 import {useNavigate} from 'react-router-dom';
+import axiosInstance from '../utils/axiosInstance';
 const VideoList: React.FC = () => {
     const [videos, setVideos] = useState<IVideo[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -16,7 +17,7 @@ const VideoList: React.FC = () => {
         const fetchVideos = async () => {
             try {
                 axios.defaults.withCredentials = true;
-                const response = await axios.get('http://localhost:7000/api/v1/videos/myvideos');
+                const response = await axiosInstance.get('/videos/myvideos');
                 setVideos(response.data.data);
                 setLoading(false);
             } catch (error) {

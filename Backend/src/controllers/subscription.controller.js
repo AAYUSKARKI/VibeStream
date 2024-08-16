@@ -18,7 +18,7 @@ const createSubscription = asynchandler(async (req, res) => {
 
     if (existingSubscription) {
         // If it exists, remove it (unsubscribe)
-        await existingSubscription.remove();
+        await Subscription.findByIdAndDelete({ _id: existingSubscription._id });
         return res.status(200).json(new Apiresponse(200, null, "Channel unsubscribed successfully"));
     }
 

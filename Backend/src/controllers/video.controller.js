@@ -37,7 +37,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
-    const { title, description } = req.body;
+    const { title, description,category,tags } = req.body;
 
     if (!req.files || !req.files.video || !req.files.thumbnail) {
         throw new Apierror(400, "Video file and thumbnail are required");
@@ -60,7 +60,9 @@ const publishAVideo = asyncHandler(async (req, res) => {
         videofile: video.secure_url,
         thumbnail: thumbnail.secure_url,
         duration: video.duration,
-        owner: req.user._id
+        owner: req.user._id,
+        category,
+        tags
     });
 
     return res.status(201).json(new Apiresponse(201, newVideo, "Video published successfully"));
@@ -68,6 +70,15 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoID } = req.params;
+
+    const cachedvideos = await client.get(`${videoID}-ID`).catch(err => {
+        console.error('Redis Get Error:', err);
+        return null;
+    });
+
+    if (cachedvideos) {
+        return res.status(200).json(new Apiresponse(200, JSON.parse(cachedvideos), "Videos by id fetched successfully"));
+    }
 
     // Aggregation pipeline to fetch video details along with likes count
     const videoWithLikes = await Video.aggregate([
@@ -129,6 +140,7 @@ const getVideoById = asyncHandler(async (req, res) => {
                 title: 1,
                 videofile: 1,
                 owner: {
+                    _id: 1,
                     username: 1,
                     avatar: 1,
                 },
@@ -146,7 +158,7 @@ const getVideoById = asyncHandler(async (req, res) => {
     if (!videoWithLikes || videoWithLikes.length === 0) {
         throw new Apierror(404, "Video not found");
     }
-
+    await client.set(`${videoID}-ID`, JSON.stringify(videoWithLikes[0]), 'EX', 3600).catch(err => console.error('Redis Set Error:', err));
     return res.status(200).json(new Apiresponse(200, videoWithLikes[0], "Video fetched successfully"));
 });
 
@@ -250,6 +262,50 @@ const RecommendedVideos = asyncHandler(async (req, res) => {
     return res.status(200).json(new Apiresponse(200, videos, "Videos fetched successfully"));
 });
 
+const SearchVideos = asyncHandler(async (req, res) => {
+    const { query } = req.query;
+    if (!query || query.trim().length === 0 || typeof query !== 'string') {
+        throw new Apierror(400, "Invalid search query");
+    }
+    const videos = await Video.find({
+        $or: [
+            { title: { $regex: query, $options: 'i' } },
+            { description: { $regex: query, $options: 'i' } },
+            { category: { $regex: query, $options: 'i' } }
+        ]
+    }).populate('owner', 'username avatar');
+
+    if (!videos || videos.length === 0) {
+        throw new Apierror(404, "No videos found for the given search query");
+    }
+    return res.status(200).json(new Apiresponse(200, videos, "Videos fetched successfully"));
+});
+
+const searchSuggestions = asyncHandler(async (req, res) => {
+    const { query } = req.query;
+
+    // Validate the query parameter
+    if (!query || typeof query !== 'string' || query.trim().length === 0) {
+        throw new Apierror(400, "Invalid search query");
+    }
+
+    const searchTerm = query.trim();
+
+    try {
+        // Perform the search with regex for case-insensitive matching
+        const videos = await Video.find({ title: { $regex: searchTerm, $options: 'i' } });
+
+        // Map video titles to an array
+        const videoTitles = videos.map(video => video.title);
+
+        return res.status(200).json(new Apiresponse(200, videoTitles, "Videos fetched successfully"));
+    } catch (error) {
+        console.error(error); // Log the error for debugging
+        return res.status(500).json(new Apiresponse(500, null, "An error occurred while fetching suggestions"));
+    }
+});
+
+
 export {
     getAllVideos,
     publishAVideo,
@@ -258,5 +314,7 @@ export {
     deleteVideo,
     togglePublishStatus,
     getMyVideos,
-    RecommendedVideos
+    RecommendedVideos,
+    SearchVideos,
+    searchSuggestions
 };

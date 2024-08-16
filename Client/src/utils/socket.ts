@@ -1,3 +1,3 @@
 import {io} from "socket.io-client";
-
-export const socket = io('http://localhost:7000')
+import { api_base_url } from "../constants/constant";
+export const socket = io(api_base_url)

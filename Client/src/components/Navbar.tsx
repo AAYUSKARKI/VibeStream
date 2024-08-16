@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Search, Button, Logo, SearchForSmallScreen } from "../utils/index.js";
+import Search from "./Search.tsx";
+import Logo  from "./Logo.tsx";
+import Button from "../ui/Button.tsx";
 import { Link } from "react-router-dom";
 import {
     IoCloseCircleOutline,
     BiLike,
-    CiSearch,
     HiOutlineVideoCamera,
     SlMenu,
 } from "../ui/icons.js";
@@ -15,7 +16,6 @@ import { logoutUser } from "../redux/authslice.js";
 
 function Navbar() {
     const [toggleMenu, setToggleMenu] = useState(false);
-    const [openSearch, setOpenSearch] = useState(false);
     const username = useSelector((state:any) => state.user?.user?.user?.username);
     const profileImg = useSelector((state:any) => state.user?.user?.user?.avatar);
     console.log(username, profileImg);
@@ -47,24 +47,8 @@ function Navbar() {
                     <Logo />
                 </div>
 
-                {/* search for large screens */}
-                <div className="w-full sm:w-1/3 hidden sm:block">
+                <div className="w-full sm:w-1/3 sm:block">
                     <Search />
-                </div>
-
-                {/* search for small screens */}
-                <div className="text-white w-full inline-flex justify-end sm:hidden pr-4">
-                    <CiSearch
-                        size={30}
-                        fontWeight={"bold"}
-                        onClick={() => setOpenSearch((prev) => !prev)}
-                    />
-                    {openSearch && (
-                        <SearchForSmallScreen
-                            open={openSearch}
-                            setOpenSearch={setOpenSearch}
-                        />
-                    )}
                 </div>
 
                 {/* login and signup butons for larger screens */}

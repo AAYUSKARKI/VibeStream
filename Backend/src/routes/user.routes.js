@@ -10,7 +10,8 @@ import {
     updateuseravatar,
     updateusercoverimage,
     getuserchannelprofile,
-    getwatchhistory
+    getwatchhistory,
+    addWatchHistory
 }
     from "../controllers/user.controller.js";
 
@@ -44,5 +45,6 @@ router.route("/avatar").patch(verifyJWT, upload.single("avatar"), updateuseravat
 router.route("/coverimage").patch(verifyJWT, upload.single("coverImage"), updateusercoverimage)
 router.route("/c/:username").get(verifyJWT, getuserchannelprofile)
 router.route("/history").get(verifyJWT, getwatchhistory)
+router.route("/history/addhistory").post(verifyJWT, addWatchHistory)
 
 export default router //can be imported by any name _eg RegisterUser
