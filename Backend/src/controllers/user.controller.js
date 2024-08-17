@@ -67,8 +67,8 @@ const registerUser = asynchandler(async (req, res) => {
     }
     const user = await User.create({
         fullname,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "",
+        avatar: avatar.secure_url,
+        coverImage: coverImage?.secure_url || "",
         email,
         password,
         username: username.toLowerCase()
@@ -114,7 +114,14 @@ const loginuser = asynchandler(async (req, res) => {
 
     const loggedinUser = await User.findById(user._id).select("-password,-refreshtoken")
 
-    return res.status(200).json(
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.status(200).cookie("accesstoken", accesstoken, options)
+        .cookie("refreshtoken", refreshtoken, options)
+        .json(
             new Apiresponse(
                 200,
                 {

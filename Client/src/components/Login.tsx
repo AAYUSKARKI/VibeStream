@@ -5,7 +5,7 @@ import { RootState,AppDispatch } from '../redux/store';
 import { loginUser } from '../redux/authslice';
 import { TextField, Button, IconButton, InputAdornment, Typography, Card, CardContent, CircularProgress, Alert } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import Cookies from "js-cookie";
+import { useNavigate } from 'react-router-dom';
 interface LoginFormInputs {
     identifier: string; // This could be either username or email
     password: string;
@@ -17,7 +17,7 @@ const LoginForm: React.FC = () => {
     const authState = useSelector((state: RootState) => state.user);
     const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+    const navigate = useNavigate();
     const handleTogglePasswordVisibility = () => {
         setShowPassword((prev) => !prev);
     };
@@ -31,21 +31,9 @@ const LoginForm: React.FC = () => {
                 password: data.password,
             };
 
-            const logindata = await dispatch(loginUser(payload)).unwrap();
+         dispatch(loginUser(payload)).unwrap();
             // Handle success (e.g., navigate to another page)
-            Cookies.set('accesstoken', logindata.accesstoken,{
-                secure: true,
-                sameSite: "none",
-                expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-            });
-            console.log(logindata.accesstoken)
-            Cookies.set('refreshtoken', logindata.refreshtoken,{
-                secure: true,
-                sameSite: "none",
-                expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
-            });
-           console.log(logindata)
-            
+        navigate('/');
         } catch (error) {
             // If an error occurs, set the error message to display
             setErrorMessage('Invalid username/email or password.');
