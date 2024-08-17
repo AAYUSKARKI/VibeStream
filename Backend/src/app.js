@@ -1,10 +1,9 @@
 import express, { urlencoded } from "express";
 import cors from 'cors';
 import cookieParser from "cookie-parser";
-import { upload } from "./middlewares/multer.middleware.js";
 const app = express();
 
-const allowedOrigins = ['https://wish-me-liard.vercel.app', 'http://localhost:5173'];
+const allowedOrigins = ['https://vibestream.vercel.app', 'http://localhost:5173'];
 
 const corsOptions = {
   origin: function(origin, callback) {
