@@ -33,7 +33,6 @@ export const loginUser = createAsyncThunk('auth/login', async (data: any) => {
     try {
         const response = await axiosInstance.post('/users/login', data);
         toast.success(response.data.message);
-        Cookies.set('accesstoken', response.data.data.accesstoken);
         return response.data.data;
     } catch (error: any) {
         toast.error(error.response.data.message);

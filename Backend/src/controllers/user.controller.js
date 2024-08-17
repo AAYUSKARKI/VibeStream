@@ -86,18 +86,6 @@ const registerUser = asynchandler(async (req, res) => {
 })
 
 const loginuser = asynchandler(async (req, res) => {
-    // Log the req.body object to inspect the data being sent from the client
-    // console.log('Request Body:', req.body);
-    // console.log('Request Object:', req);
-
-
-    //req body bata data lera aaune
-    //username or email
-    //find the user
-    //password check 
-    //access and refreshtoken
-    //send cookies
-    //succesfully login
     const { email, username, password } = req.body
     console.log("username ", username);
     console.log("email ", email);
@@ -126,14 +114,7 @@ const loginuser = asynchandler(async (req, res) => {
 
     const loggedinUser = await User.findById(user._id).select("-password,-refreshtoken")
 
-    const options = {
-        httpOnly: true,
-        secure: true
-    }
-
-    return res.status(200).cookie("accesstoken", accesstoken, options)
-        .cookie("refreshtoken", refreshtoken, options)
-        .json(
+    return res.status(200).json(
             new Apiresponse(
                 200,
                 {
