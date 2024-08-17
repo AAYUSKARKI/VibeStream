@@ -16,3 +16,23 @@ export interface IVideo {
     createdAt: string;
     updatedAt: string;
 }
+
+interface VideoOwner {
+    _id: string;
+    username: string;
+    avatar: string;
+    subscribersCount: number;
+    isSubscribed: boolean;
+}
+
+export interface Video {
+    _id: string;
+    videofile: string;
+    description: string;
+    title: string;
+    views: number;
+    owner: VideoOwner;
+    createdAt: string;
+    likesCount: number;
+    isLiked: boolean;
+}

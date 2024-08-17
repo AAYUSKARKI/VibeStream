@@ -17,7 +17,7 @@ const router = Router();
 
 router.route("/publish").post(verifyJWT,upload.fields([{name:"video"},{name:"thumbnail"}]), publishAVideo);
 router.route("/myvideos").get(verifyJWT,getMyVideos);
-router.route("/:videoID").get(verifyJWT,getVideoById);
+router.route("/:videoId").get(verifyJWT,getVideoById);
 router.route("/recommended/videos/recommended").get(verifyJWT,RecommendedVideos);
 router.route("/search/videos/search").get(verifyJWT,SearchVideos);
 router.route("/:videoID/publish").put(verifyJWT,togglePublishStatus);

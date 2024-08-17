@@ -4,7 +4,8 @@ import { Apierror } from "../utils/apierror.js";
 import { Apiresponse } from "../utils/apiresponse.js";
 import { asynchandler as asyncHandler } from "../utils/asynchandler.js";
 import { uploadOnCloudinary} from "../utils/cloudinary.js";
-import { client } from "../index.js";
+import { client, videoUpdateQueue } from "../index.js";
+import { User } from "../models/user.model.js";
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy = 'createdAt', sortType = 'desc' } = req.query;
 
@@ -69,97 +70,124 @@ const publishAVideo = asyncHandler(async (req, res) => {
 });
 
 const getVideoById = asyncHandler(async (req, res) => {
-    const { videoID } = req.params;
+    const { videoId } = req.params;
+    console.log(videoId)
+    // let userId = req.body;
 
-    const cachedvideos = await client.get(`${videoID}-ID`).catch(err => {
+    const cachedvideo = await client.get(`VideoById-${videoId}`).catch(err => {
         console.error('Redis Get Error:', err);
         return null;
     });
 
-    if (cachedvideos) {
-        return res.status(200).json(new Apiresponse(200, JSON.parse(cachedvideos), "Videos by id fetched successfully"));
+    if (cachedvideo) {
+        videoUpdateQueue.add({videoId, userid: req.user?._id});
+        return res.status(200).json(new Apiresponse(200, JSON.parse(cachedvideo), "Video fetched successfully"));
     }
 
-    // Aggregation pipeline to fetch video details along with likes count
-    const videoWithLikes = await Video.aggregate([
+    const video = await Video.aggregate([
         {
-            // Match the video by ID
-            $match: { _id: new mongoose.Types.ObjectId(videoID) }
-        },
-        {
-            // Lookup to join the owner details
-            $lookup: {
-                from: 'users', // The name of the users collection
-                localField: 'owner',
-                foreignField: '_id',
-                as: 'owner'
+            $match: {
+                _id: new mongoose.Types.ObjectId(videoId)
             }
         },
         {
-            // Unwind the ownerDetails array (since it's a single owner)
-            $unwind: '$owner'
-        },
-        {
-            // Lookup to count likes related to the video
             $lookup: {
-                from: 'likes', // The name of the likes collection
-                localField: '_id',
-                foreignField: 'video',
-                as: 'likes'
+                from: "likes",
+                localField: "_id",
+                foreignField: "video",
+                as: "likes"
             }
         },
         {
-            //lookup to count subscribers related to the channel
             $lookup: {
-                from: 'subscriptions',
-                localField: 'owner',
-                foreignField: 'channel',
-                as: 'subscribers'
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "owner",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "subscriptions",
+                            localField: "_id",
+                            foreignField: "channel",
+                            as: "subscribers"
+                        }
+                    },
+                    {
+                        $addFields: {
+                            subscribersCount: {
+                                $size: "$subscribers"
+                            },
+                            isSubscribed: {
+                                $cond: {
+                                    if: {
+                                        $in: [
+                                            req.user?._id,
+                                            "$subscribers.subscriber"
+                                        ]
+                                    },
+                                    then: true,
+                                    else: false
+                                }
+                            }
+                        }
+                    },
+                    {
+                        $project: {
+                            username: 1,
+                            avatar: 1,
+                            subscribersCount: 1,
+                            isSubscribed: 1
+                        }
+                    }
+                ]
             }
         },
         {
-            // Lookup to fetch user details of the subscribers
-            $lookup: {
-                from: 'users',
-                localField: 'subscribers', // Assuming 'subscriber' field in subscriptions points to the user ID
-                foreignField: '_id',
-                as: 'subscriberDetails'
-            }
-        },
-        {
-            // Add fields to include likes count
             $addFields: {
-                likesCount: { $size: '$likes' },
-                likes: '$likes',
+                likesCount: {
+                    $size: "$likes"
+                },
+                owner: {
+                    $first: "$owner"
+                },
+                isLiked: {
+                    $cond: {
+                        if: {$in: [req.user?._id, "$likes.likedBy"]},
+                        then: true,
+                        else: false
+                    }
+                }
             }
         },
         {
-            // Project the necessary fields
             $project: {
-                _id: 1,
-                title: 1,
                 videofile: 1,
-                owner: {
-                    _id: 1,
-                    username: 1,
-                    avatar: 1,
-                },
+                title: 1,
+                description: 1,
+                views: 1,
+                createdAt: 1,
+                duration: 1,
+                comments: 1,
+                owner: 1,
                 likesCount: 1,
-                likes: {
-                    likedBy: 1,
-                },
-                subscribersCount: { $size: '$subscribers' },
-                subscriberDetails: 1,
+                isLiked: 1
             }
         }
     ]);
 
-    // Check if video was found
-    if (!videoWithLikes || videoWithLikes.length === 0) {
-        throw new Apierror(404, "Video not found");
+    if (!video) {
+        throw new Apierror(500, "failed to fetch video");
     }
-    await client.set(`${videoID}-ID`, JSON.stringify(videoWithLikes[0]), 'EX', 3600).catch(err => console.error('Redis Set Error:', err));
-    return res.status(200).json(new Apiresponse(200, videoWithLikes[0], "Video fetched successfully"));
+
+    client.set(`VideoById-${videoId}`, JSON.stringify(video[0]), 'EX', 3600).catch(err => console.error('Redis Set Error:', err));
+
+    videoUpdateQueue.add({videoId, userid: req.user?._id});
+    return res
+        .status(200)
+        .json(
+            new Apiresponse(200, video, "video details fetched successfully")
+        );
 });
 
 

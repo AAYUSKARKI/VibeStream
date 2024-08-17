@@ -3,23 +3,18 @@ import axiosInstance from '../utils/axiosInstance';
 import { useParams } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Loader from './Loader';
-import VideoCard from './Videocard';
-import { IVideo } from '../interfaces/Video';
 import ReactPlayer from 'react-player';
 import { Typography, Avatar, Button } from '@mui/material';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import CommentIcon from '@mui/icons-material/Comment';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import useGetRecommendedations from '../hooks/useGetrecommendedvideos';
-import useGetVideoById from '../hooks/useGetvideobyId';
+import useGetvideobyId from '../hooks/useGetvideobyId';
 import { useSelector } from 'react-redux';
-import {useNavigate} from 'react-router-dom';
-import addToWatchHistory from '../hooks/useAddtowatchhistory';
+import Recommendations from './Recommendations';
+
 const VideoPlayer: React.FC = () => {
-    const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
-    const { data: video, isLoading, isError, error } = useGetVideoById(id || '');
-    const { data: recommendedVideos, isLoading: recommendedVideosLoading, isError: recommendedVideosError } = useGetRecommendedations();
+    const { data: video, isLoading, isError, error } = useGetvideobyId(id || '');
     const { user } = useSelector((state: any) => state.user.user);
     const [liked, setLiked] = useState(false);
     const [likesCount, setLikesCount] = useState(video?.likesCount || 0);
@@ -28,27 +23,16 @@ const VideoPlayer: React.FC = () => {
     const [subscriptionCount, setSubscriptionCount] = useState(0);
 
     useEffect(() => {
-        if (video && Array.isArray(video.likes)) {
-            setLiked(video.likes.some((like: any) => like.likedBy === user?._id));
-        }
-        if(video){
-        addToWatchHistory({ videoId: video._id, userId: user?._id });
-        }
-    }, [video, user]);
-
-    useEffect(() => {
-        if(video && Array.isArray(video.subscriberDetails)) {
-            setSubscribed(video.subscriberDetails.some((sub: any) => sub._id === user?._id));
+        if (video) {
+            setLiked(video.isLiked);
+            setSubscribed(video.owner.isSubscribed);
+            setOwner(video.owner._id === user?._id);
+            setLikesCount(video.likesCount);
+            setSubscriptionCount(video.owner.subscribersCount);
         }
     }, [video, user]);
 
-    useEffect(() => {
-        setOwner(video?.owner?._id === user?._id);
-        setLikesCount(video?.likesCount || 0);
-        setSubscriptionCount(video?.subscribersCount || 0);
-    }, [video?.likesCount]);
-
-    if (isLoading || recommendedVideosLoading) {
+    if (isLoading) {
         return (
             <div className="flex items-center justify-center h-full">
                 <Loader />
@@ -56,7 +40,7 @@ const VideoPlayer: React.FC = () => {
         );
     }
 
-    if (isError || recommendedVideosError) {
+    if (isError) {
         return (
             <div className="flex items-center justify-center h-full text-red-500">
                 <p>Error loading video: {error?.message || 'Something went wrong'}</p>
@@ -75,7 +59,7 @@ const VideoPlayer: React.FC = () => {
     const handleLike = async () => {
         try {
             setLiked(!liked);
-            setLikesCount((prevCount: number) => liked ? prevCount - 1 : prevCount + 1); // Update likes count based on the new like status
+            setLikesCount((prevCount: number) => liked ? prevCount - 1 : prevCount + 1);
             await axiosInstance.post('/likes/like', { videoid: video._id });
         } catch (error) {
             console.error('Error liking video:', error);
@@ -85,16 +69,12 @@ const VideoPlayer: React.FC = () => {
     const handleSubscribe = async () => {
         try {
             setSubscribed(!subscribed);
-            setSubscriptionCount((prevCount: number) => subscribed ? prevCount - 1 : prevCount + 1); // Update subscription count based on the new subscription status
+            setSubscriptionCount((prevCount: number) => subscribed ? prevCount - 1 : prevCount + 1);
             await axiosInstance.post('/subscriptions/subscription', { channelid: video.owner._id });
         } catch (error) {
             console.error('Error subscribing to channel:', error);
         }
     };
-
-    function onPlay(videoId: string) {
-        navigate(`/videos/${videoId}`);
-    }
 
     return (
         <div className="flex dark:bg-gray-950">
@@ -154,16 +134,10 @@ const VideoPlayer: React.FC = () => {
                     </div>
 
                     {/* Recommended Videos Section */}
-                    <div className="w-full lg:w-1/4">
                         <Typography variant="h6" color="textPrimary" className="mb-4 text-white">
                             Recommended Videos
                         </Typography>
-                        <div className="space-y-4">
-                            {recommendedVideos.map((recVideo: IVideo) => (
-                                <VideoCard key={recVideo._id} video={recVideo} onPlay={()=>onPlay(recVideo._id)} />
-                            ))}
-                        </div>
-                    </div>
+                        <Recommendations />
                 </div>
             </div>
         </div>
