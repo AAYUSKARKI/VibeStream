@@ -12,7 +12,6 @@ export interface IVideo {
         username: string;
         avatar: string;
     };
-    likesCount?:number;
     createdAt: string;
     updatedAt: string;
 }

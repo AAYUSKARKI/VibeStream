@@ -18,7 +18,6 @@ function Navbar() {
     const [toggleMenu, setToggleMenu] = useState(false);
     const username = useSelector((state:any) => state.user?.user?.user?.username);
     const profileImg = useSelector((state:any) => state.user?.user?.user?.avatar);
-    console.log(username, profileImg);
     const dispatch:any = useDispatch();
     const navigate = useNavigate();
 
@@ -42,7 +41,7 @@ function Navbar() {
 
     return (
         <>
-            <nav className="w-full bg-[#0E0F0F] flex justify-between items-center p-4 sm:gap-5 gap-2 border-b-2 border-gray-500 sticky top-0 z-50">
+            <nav className="w-full dark:bg-gray-950 dark:text-white bg-gray-50 text-gray-800 flex justify-between items-center p-4 sm:gap-5 gap-2 border-b-2 border-gray-500 sticky top-0 z-50">
                 <div className="flex items-center justify-center gap-2 cursor-pointer">
                     <Logo />
                 </div>

@@ -10,7 +10,7 @@ import ThemeSwitcher from './components/Themeswitcher';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import Loader from './components/Loader';
 import Likedvideo from './components/Likedvideo'
-
+import PageNotFound from './components/Pagenotfound';
 
 const Videoplayer = lazy(() => import('./components/Videoplayer'));
 const Subscribedchannel = lazy(() => import('./components/Subscribedchannel'));
@@ -48,6 +48,7 @@ function App() {
                     <Route path="/subscriptions" element={<Subscribedchannel />} />
                     <Route path="/history" element={<Watchhistory />} />
                     <Route path="/search" element={<Searchresults />} />
+                    <Route path="*" element={<PageNotFound />} />
                 </Routes>
                 </Suspense>
             </Router>

@@ -32,11 +32,12 @@ const LoginForm: React.FC = () => {
             };
 
          dispatch(loginUser(payload)).unwrap();
-            // Handle success (e.g., navigate to another page)
-        navigate('/');
         } catch (error) {
             // If an error occurs, set the error message to display
             setErrorMessage('Invalid username/email or password.');
+        }
+        finally {
+            navigate('/');
         }
     };
 

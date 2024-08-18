@@ -38,7 +38,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onPlay }) => {
 
     return (
         <div
-            className="max-w-md h-[300px] p-2 bg-white dark:bg-gray-900 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+            className="max-w-md h-[260px] p-1 bg-white dark:bg-gray-950 shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onClick={onPlay}
@@ -70,28 +70,28 @@ const VideoCard: React.FC<VideoCardProps> = ({ video, onPlay }) => {
                         </svg>
                     </div>
                 )}
-                <span className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-1.5 py-0.5 rounded">
+                <span className="absolute bottom-2 right-2 bg-black bg-opacity-75 dark:text-white text-xs px-1.5 py-0.5 rounded">
                     {formatDuration(video.duration)}
                 </span>
             </div>
 
             {/* Content */}
-            <div className="flex items-center p-4">
+            <div className="flex items-center">
             <img
                 src={video.owner.avatar}
                 alt={video.owner.username}
-                className="w-12 h-12 rounded-full object-cover"
+                className="md:w-12 md:h-12 h-8 w-8 rounded-full object-cover"
                     /> 
                 <div className="flex flex-col p-2">
-                <p className="text-gray-900 text-lg dark:text-gray-100 font-semibold truncate">
+                <p className="text-gray-900 text-sm md:text-lg dark:text-gray-100 font-semibold truncate">
                     {video.title}
                 </p>
                 <div className="flex justify-between space-x-2 items-center text-sm text-gray-600 dark:text-gray-400">
-                <p className="text-md text-black dark:text-gray-400 truncate">
+                <p className="md:text-md text-sm  text-black dark:text-gray-400 truncate">
                         {video.owner.username} .
                     </p>
-                    <p>{video.views.toLocaleString()} views .</p>
-                    <p>{timeAgo}</p>
+                    <p className='text-sm text-black md:text-md dark:text-gray-200'>{video.views.toLocaleString()} views .</p>
+                    <p className='text-sm text-black md:text-md dark:text-gray-200'>{timeAgo}</p>
                 </div>
                 </div>            
             </div>

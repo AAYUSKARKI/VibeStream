@@ -1,13 +1,13 @@
 import { IVideo } from '../interfaces/Video'
 import Sidebar from './Sidebar'
 import Loader from './Loader'
-import useGetHistory from '../hooks/useGethistory'
+import usegetallVideos from '../hooks/useGetallvideos'
 import VideoCard from './Videocard'
 import { useNavigate } from 'react-router-dom'
 
-function Watchhistory() {
+function Allvideos() {
 
-    const {isLoading, isError, error, data} = useGetHistory()
+    const {isLoading, isError, error, data} = usegetallVideos();
     const navigate = useNavigate();
     if (isLoading) {
         return (
@@ -20,7 +20,7 @@ function Watchhistory() {
     if (isError) {
         return (
           <div className="flex items-center justify-center h-full text-red-500">
-            <p>Error loading history: {error?.message || 'Something went wrong'}</p>
+            <p>Error loading <a href=""></a>: {error?.message || 'Something went wrong'}</p>
           </div>
         )
     }
@@ -30,7 +30,7 @@ function Watchhistory() {
         <div className='flex'>
             <Sidebar/>
           <div className="p-4 flex items-center justify-center h-full text-gray-500">
-            <p>You have no videos watched yet. Start exploring and watch some videos!</p>
+            <p>NO VIDEOS</p>
           </div>
         </div>
         )
@@ -53,4 +53,4 @@ function Watchhistory() {
   )
 }
 
-export default Watchhistory
+export default Allvideos

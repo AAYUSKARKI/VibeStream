@@ -1,6 +1,7 @@
 import { configureStore as ConfigureStore, combineReducers } from "@reduxjs/toolkit"
 import authReducer from './authslice'
 import themeReducer from './themeslice'
+import videoReducer from './videoslice'
 import {
   persistReducer,
   FLUSH,
@@ -40,6 +41,7 @@ const persistedUserReducer = persistReducer(userPersistConfig, authReducer);
 const rootReducer = combineReducers({
   user: persistedUserReducer,
   theme: themeReducer,
+  videos: videoReducer,
 //   theme: persistedThemeReducer,
 //   products: persistedProductReducer,
 });

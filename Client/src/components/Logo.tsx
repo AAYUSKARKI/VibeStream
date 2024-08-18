@@ -10,7 +10,7 @@ function Logo({ size = "30" }) {
                     size={size}
                     color="#A855F7"
                 />
-                <span className="font-bold text-white hidden md:block">VIBESTREAM</span>
+                <span className="font-bold text-gray-700 dark:text-white hidden md:block">VIBESTREAM</span>
             </Link>
         </>
     );

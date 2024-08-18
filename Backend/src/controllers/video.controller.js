@@ -5,36 +5,19 @@ import { Apiresponse } from "../utils/apiresponse.js";
 import { asynchandler as asyncHandler } from "../utils/asynchandler.js";
 import { uploadOnCloudinary} from "../utils/cloudinary.js";
 import { client, videoUpdateQueue } from "../index.js";
-import { User } from "../models/user.model.js";
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy = 'createdAt', sortType = 'desc' } = req.query;
+    const cachedvideos = await client.get('Videos-All').catch(err => {
+        console.error('Redis Get Error:', err);
+        return null;
+    });
+    
+    if (cachedvideos) {
+        return res.status(200).json(new Apiresponse(200, JSON.parse(cachedvideos), "Videos fetched successfully"));
+    }
 
-    const pipeline = [
-        {
-            $match: {
-                ispublished: true,
-                ...(query && { $text: { $search: query } })
-            }
-        },
-        {
-            $sort: { [sortBy]: sortType === 'asc' ? 1 : -1 }
-        },
-        {
-            $facet: {
-                metadata: [{ $count: "total" }],
-                data: [{ $skip: (page - 1) * limit }, { $limit: parseInt(limit) }]
-            }
-        },
-        {
-            $addFields: {
-                total: { $arrayElemAt: ["$metadata.total", 0] }
-            }
-        }
-    ];
-
-    const result = await Video.aggregate(pipeline);
-
-    return res.status(200).json(new Apiresponse(200, result, "Videos fetched successfully"));
+    const Videos = await Video.find().populate('owner', 'username avatar');
+    client.set('Videos-All', JSON.stringify(Videos), 'EX', 3600).catch(err => console.error('Redis Set Error:', err));
+    return res.status(200).json(new Apiresponse(200, Videos, "Videos fetched successfully"));
 });
 
 const publishAVideo = asyncHandler(async (req, res) => {
