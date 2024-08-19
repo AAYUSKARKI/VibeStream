@@ -41,13 +41,10 @@ function Allvideos() {
     }
   return (
     <>
-    <div className='flex'>
-    <Sidebar/>
     <div className="grid grid-cols-1 w-full sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 dark:bg-gray-950">
         {data?.map((video: IVideo) => (
         <VideoCard key={video._id} video={video} onPlay={() => onPlay(video._id)} />
         ))}
-    </div>
     </div>
     </>
   )

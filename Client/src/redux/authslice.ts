@@ -32,6 +32,7 @@ export const registerUser = createAsyncThunk('auth/register', async (data: any) 
 export const loginUser = createAsyncThunk('auth/login', async (data: any) => {
     try {
         const response = await axiosInstance.post('/users/login', data);
+        localStorage.setItem('accesstoken', response.data.data.accesstoken);
         toast.success(response.data.message);
         return response.data.data;
     } catch (error: any) {

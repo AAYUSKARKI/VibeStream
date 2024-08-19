@@ -5,7 +5,6 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean';
-import csurf from 'csurf';
 import morgan from 'morgan';
 import logger from "./utils/logger.js";
 const app = express();
@@ -21,7 +20,7 @@ const corsOptions = {
     }
   },
   methods: ['GET', 'POST','DELETE','PUT','PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization','X-Requested-With','X-CSRF-Token'],
+  allowedHeaders: ['Content-Type', 'Authorization','X-Requested-With'],
   exposedHeaders: ['Content-Length', 'X-Foo'],
   credentials: true, 
 };
@@ -32,7 +31,6 @@ app.use(express.json({ limit: "400mb" }));
 app.use(express.urlencoded({ extended: true, limit: "400mb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
-app.use(csurf({ cookie: true })); // CSRF protection using cookies
 app.use(mongoSanitize()); // Prevent NoSQL injection
 app.use(xss()); // Prevent XSS attacks
 
@@ -61,22 +59,13 @@ app.use("/api/v1/likes", likeRouter);
 app.use("/api/v1/subscriptions", subscriptionRouter);
 app.use("/api/v1/playlists", Playlist);
 
-// CSRF token route
-app.get('/csrf-token', (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
-
 // Global error handling
 app.use((err, req, res, next) => {
-  if (err.code === 'EBADCSRFTOKEN') {
-    res.status(403).send('CSRF token validation failed');
-  } else {
     logger.error(err.stack); // Use the logger to log errors
     res.status(500).json({
       status: 'error',
       message: 'Internal Server Error',
     });
-  }
-});
+  });
 
 export { app };
