@@ -1,6 +1,5 @@
 // src/App.jsx
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
-import VideoUploadForm from './components/VideoUploadForm';
 import LoginForm from './components/Login';
 import VideoList from './components/Videolist';
 import VideoHubRegister from './components/Register';
@@ -11,6 +10,7 @@ import { Suspense, lazy, useEffect, useState } from 'react';
 import Loader from './components/Loader';
 import Likedvideo from './components/Likedvideo'
 import PageNotFound from './components/Pagenotfound';
+import Videoupload from './components/Videoupload';
 
 const Videoplayer = lazy(() => import('./components/Videoplayer'));
 const Subscribedchannel = lazy(() => import('./components/Subscribedchannel'));
@@ -38,7 +38,7 @@ function App() {
                 <Navbar/>
                 <Suspense fallback={<Loader />}>
                 <Routes>
-                    <Route path="/upload" element={<VideoUploadForm />} />
+                    <Route path="/upload" element={<Videoupload />} />
                     <Route path="/login" element={<LoginForm />} />
                     <Route path="/register" element={<VideoHubRegister />} />
                     <Route path="/channel/:username" element={<Mychannel/>}/>

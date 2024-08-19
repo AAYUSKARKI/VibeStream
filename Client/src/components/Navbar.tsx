@@ -49,10 +49,9 @@ function Navbar() {
                 <div className="w-full sm:w-1/3 sm:block">
                     <Search />
                 </div>
-
                 {/* login and signup butons for larger screens */}
                 {username ? (
-                    <div className="rounded-full sm:block hidden">
+                    <div className="rounded-full sm:flex items-center justify-center hidden">
                         <img
                             src={profileImg}
                             alt="profileImg"

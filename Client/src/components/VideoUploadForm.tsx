@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { AxiosProgressEvent } from 'axios';
 import axiosInstance from '../utils/axiosInstance';
-import Sidebar from './Sidebar';
 import { TagsInput } from './Tagsinput';
+import { FaCamera } from 'react-icons/fa';
 
-const VideoUpload = () => {
+const VideoUpload= () => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [video, setVideo] = useState<File | null>(null);
@@ -90,11 +90,9 @@ const VideoUpload = () => {
 
     return (
         <>
-            <Sidebar />
-            <div className="max-w-4xl mx-auto p-4 bg-white dark:bg-gray-950 rounded-lg shadow-lg transition-colors duration-300">
+            <div className="h-screen max-w-4xl mx-auto bg-white dark:bg-gray-950 rounded-lg shadow-lg">
                 {step === 1 && (
-                    <div className="text-center">
-                        <label htmlFor="video-upload" className="cursor-pointer block p-6 border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 dark:bg-gray-800 dark:border-gray-700">
+                        <label htmlFor="video-upload" className="cursor-pointer block border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 dark:bg-gray-800 dark:border-gray-700">
                             <input
                                 type="file"
                                 id="video-upload"
@@ -102,9 +100,11 @@ const VideoUpload = () => {
                                 accept="video/*"
                                 onChange={handleVideoSelect}
                             />
-                            <p className="text-gray-600 dark:text-gray-400">Click to upload a video</p>
+                            <div className="flex dark:bg-grsy-950 flex-col items-center justify-center p-4">
+                                <FaCamera className="w-12 h-12 text-gray-400" />
+                                <p className="text-gray-600 dark:text-gray-400">Click to upload a video</p>
+                            </div>
                         </label>
-                    </div>
                 )}
 
                 {step === 2 && videoUrl && (

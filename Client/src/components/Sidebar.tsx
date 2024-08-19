@@ -3,7 +3,6 @@ import {
     BiHistory,
     BiLike,
     CiSettings,
-    HiOutlineVideoCamera,
     IoFolderOutline,
     RiHome6Line,
     TbUserCheck,
@@ -12,7 +11,9 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { IoMdLogOut } from "react-icons/io";
 import { logoutUser as userLogout } from "../redux/authslice";
-
+import { IoVideocamOutline } from "react-icons/io5";
+import { BsCollectionPlay } from "react-icons/bs";
+import { MdInsights } from "react-icons/md";
 function Sidebar() {
     const dispatch: any = useDispatch();
     const navigate = useNavigate();
@@ -22,6 +23,11 @@ function Sidebar() {
             icon: <RiHome6Line size={25} />,
             title: "Home",
             url: "/",
+        },
+        {
+            icon: <IoVideocamOutline size={25} />,
+            title: "Upload Video",
+            url: "/upload",
         },
         {
             icon: <BiLike size={25} />,
@@ -34,14 +40,14 @@ function Sidebar() {
             url: "/history",
         },
         {
-            icon: <HiOutlineVideoCamera size={25} />,
+            icon: <BsCollectionPlay size={25} />,
             title: "My Content",
             url: `/channel/${username}`,
         },
         {
-            icon: <IoFolderOutline size={25} />,
-            title: "Collections",
-            url: "/collections",
+            icon: <MdInsights size={25} />,
+            title: "Dashboard",
+            url: "/dashboard",
         },
         {
             icon: <TbUserCheck size={25} />,

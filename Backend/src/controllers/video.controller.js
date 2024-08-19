@@ -46,7 +46,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         duration: video.duration,
         owner: req.user._id,
         category,
-        tags
+        tags:JSON.parse(tags)
     });
 
     return res.status(201).json(new Apiresponse(201, newVideo, "Video published successfully"));
