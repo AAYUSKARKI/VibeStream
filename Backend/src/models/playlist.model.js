@@ -2,13 +2,11 @@ import mongoose, { Schema } from 'mongoose'
 
 
 const Playlistschema = new Schema({
-    name: {
+    title: {
         type: String,
-        required: true
-    },
-    description: {
-        type: String,
-        required: true
+        required: true,
+        unique: [true, "Playlist already exists"],
+        index: true
     },
     videos: [{
         type: Schema.Types.ObjectId,
@@ -16,7 +14,8 @@ const Playlistschema = new Schema({
     }],
     owner:{
         type: Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
+        index: true
     }
 },
     { timestamps: true }

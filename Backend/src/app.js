@@ -20,8 +20,8 @@ const corsOptions = {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST','DELETE','PUT'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST','DELETE','PUT','PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization','X-Requested-With','X-CSRF-Token'],
   exposedHeaders: ['Content-Length', 'X-Foo'],
   credentials: true, 
 };
@@ -53,12 +53,13 @@ import userRouter from './routes/user.routes.js';
 import videoRouter from './routes/video.routes.js';
 import likeRouter from './routes/like.routes.js';
 import subscriptionRouter from './routes/subscription.routes.js';
-
+import Playlist from './routes/playlist.routes.js';
 // Routes declaration
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/videos", videoRouter);
 app.use("/api/v1/likes", likeRouter);
 app.use("/api/v1/subscriptions", subscriptionRouter);
+app.use("/api/v1/playlists", Playlist);
 
 // CSRF token route
 app.get('/csrf-token', (req, res) => {
