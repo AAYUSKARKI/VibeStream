@@ -10,10 +10,11 @@ import { Video } from "./models/video.model.js";
 import { User } from "./models/user.model.js";
 
 export const client = createClient({
-    password: 'VlYEfYOB30E3b2BYzE5t1WwsE7VKAiGb',
+    username: 'default',
+    password: 'SHlzl8rrb8D9qGIyB9vdyxVeh4YrjXHd',
     socket: {
-        host: 'redis-10902.c1.asia-northeast1-1.gce.redns.redis-cloud.com',
-        port: 10902
+        host: 'redis-15041.crce182.ap-south-1-1.ec2.redns.redis-cloud.com',
+        port: 15041
     }
 });
 
